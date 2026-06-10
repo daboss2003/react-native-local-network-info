@@ -46,7 +46,7 @@
     "react-native": "*"
   },
   "devDependencies": {
-    "@types/react": "~19.0.0",
+    "@types/react": "^19.2.0",
     "expo": "^56.0.0",
     "react": "*",
     "react-native": "*",

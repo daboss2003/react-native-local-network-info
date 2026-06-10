@@ -1,7 +1,13 @@
+// This example shows every export of `local-network-info`:
+//   • useLocalIp()              — the recommended hook; drives the live headline below.
+//   • getAllInterfaces()        — imperative one-shot, powers the interface list.
+//   • addNetworkChangeListener  — raw listener, powers the "change events" counter.
+//   • getLocalIp()              — the one-shot equivalent of the hook (see refresh handler).
 import {
   addNetworkChangeListener,
   getAllInterfaces,
   getLocalIp,
+  useLocalIp,
   type LocalIpInfo,
   type NetworkInterfaceInfo,
 } from 'local-network-info';
@@ -30,7 +36,12 @@ const roleLabels: Record<LocalIpInfo['role'], string> = {
 };
 
 export default function App() {
-  const [info, setInfo] = useState<LocalIpInfo | null>(null);
+  // ① Recommended usage: the hook keeps `info` live automatically (initial
+  //    snapshot on mount + updates on every network change), and cleans up
+  //    its subscription on unmount. This single line is all most apps need.
+  const info = useLocalIp();
+
+  // ② The hook covers the headline; these imperative APIs power the extras.
   const [interfaces, setInterfaces] = useState<NetworkInterfaceInfo[]>([]);
   const [loading, setLoading] = useState(false);
   const [changeCount, setChangeCount] = useState(0);
@@ -38,8 +49,9 @@ export default function App() {
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
-      const [snapshot, allInterfaces] = await Promise.all([getLocalIp(), getAllInterfaces()]);
-      setInfo(snapshot);
+      // getLocalIp() is the one-shot equivalent of the hook — shown here for
+      // completeness; the displayed value comes from useLocalIp() above.
+      const [, allInterfaces] = await Promise.all([getLocalIp(), getAllInterfaces()]);
       setInterfaces(allInterfaces);
     } finally {
       setLoading(false);
@@ -49,9 +61,9 @@ export default function App() {
   useEffect(() => {
     refresh();
 
-    // Live listener: re-render whenever the network changes.
-    const subscription = addNetworkChangeListener((snapshot) => {
-      setInfo(snapshot);
+    // The hook already listens internally; this extra listener just demonstrates
+    // the raw API — counting changes and refreshing the interface list each time.
+    const subscription = addNetworkChangeListener(() => {
       setChangeCount((count) => count + 1);
       getAllInterfaces().then(setInterfaces).catch(() => {});
     });
@@ -65,7 +77,8 @@ export default function App() {
       <ScrollView
         contentContainerStyle={styles.content}
         refreshControl={<RefreshControl refreshing={loading} onRefresh={refresh} />}>
-        <Text style={styles.title}>Local IP Detector</Text>
+        <Text style={styles.title}>Local Network Info</Text>
+        <Text style={styles.subtitle}>headline below is powered by useLocalIp()</Text>
 
         <View style={[styles.banner, { backgroundColor: roleColors[info?.role ?? 'none'] }]}>
           <Text style={styles.bannerText}>{roleLabels[info?.role ?? 'none']}</Text>
@@ -99,7 +112,7 @@ export default function App() {
           {loading ? (
             <ActivityIndicator color="#fff" />
           ) : (
-            <Text style={styles.buttonText}>Refresh now</Text>
+            <Text style={styles.buttonText}>Refresh interfaces</Text>
           )}
         </TouchableOpacity>
 
@@ -117,8 +130,8 @@ export default function App() {
         )}
 
         <Text style={styles.hint}>
-          Toggle WiFi or your hotspot in Settings and watch the values update live (no refresh
-          needed).
+          Toggle WiFi or your hotspot in Settings and watch the headline update live (no refresh
+          needed) — that's the useLocalIp() hook reacting to change events.
         </Text>
       </ScrollView>
     </View>
@@ -142,7 +155,8 @@ function yesNo(value: boolean | undefined): string {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0f172a' },
   content: { padding: 20, paddingTop: 64, paddingBottom: 48 },
-  title: { fontSize: 26, fontWeight: '700', color: '#f8fafc', marginBottom: 16 },
+  title: { fontSize: 26, fontWeight: '700', color: '#f8fafc' },
+  subtitle: { fontSize: 13, color: '#64748b', marginBottom: 16 },
   banner: { borderRadius: 12, paddingVertical: 14, paddingHorizontal: 16, marginBottom: 16 },
   bannerText: { color: '#fff', fontSize: 16, fontWeight: '600', textAlign: 'center' },
   card: { backgroundColor: '#1e293b', borderRadius: 12, padding: 16, marginBottom: 16 },
