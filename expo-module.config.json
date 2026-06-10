@@ -1,0 +1,9 @@
+{
+  "platforms": ["apple", "android", "web"],
+  "apple": {
+    "modules": ["LocalNetworkInfoModule"]
+  },
+  "android": {
+    "modules": ["com.localnetworkinfo.LocalNetworkInfoModule"]
+  }
+}

@@ -1,0 +1,9 @@
+# Sources are shipped (src/) but exclude dev-only noise.
+example/
+node_modules/
+.expo/
+*.log
+*.tgz
+.DS_Store
+
+# Keep build/, android/, ios/, src/ and expo-module.config.json (see package.json "files").

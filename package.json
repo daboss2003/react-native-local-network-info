@@ -1,0 +1,55 @@
+{
+  "name": "local-network-info",
+  "version": "0.1.0",
+  "description": "Read a React Native device's own local IPv4 address and whether it is connected to WiFi or acting as a hotspot host, with live network-change events. Built with the Expo Modules API; works in bare React Native and Expo.",
+  "main": "build/index.js",
+  "types": "build/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf build",
+    "prepare": "tsc",
+    "prepublishOnly": "tsc"
+  },
+  "keywords": [
+    "react-native",
+    "expo",
+    "expo-module",
+    "ip",
+    "local-ip",
+    "ipv4",
+    "network",
+    "wifi",
+    "hotspot",
+    "tethering",
+    "softap",
+    "gateway"
+  ],
+  "license": "MIT",
+  "author": "daboss2003",
+  "homepage": "https://github.com/daboss2003/local-network-info#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/daboss2003/local-network-info"
+  },
+  "files": [
+    "build",
+    "android",
+    "ios",
+    "src",
+    "expo-module.config.json",
+    "!**/__tests__",
+    "!**/__mocks__"
+  ],
+  "peerDependencies": {
+    "expo": "*",
+    "react": "*",
+    "react-native": "*"
+  },
+  "devDependencies": {
+    "@types/react": "~19.0.0",
+    "expo": "^56.0.0",
+    "react": "*",
+    "react-native": "*",
+    "typescript": "^5.9.0"
+  }
+}

@@ -1,0 +1,16 @@
+# Build output
+build/
+
+# Dependencies
+node_modules/
+
+# Generated native projects (created by `expo prebuild` / `pod install`)
+example/ios/
+example/android/
+example/.expo/
+
+# Misc
+*.log
+.DS_Store
+*.tgz
+.expo/

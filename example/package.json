@@ -1,0 +1,23 @@
+{
+  "name": "local-network-info-example",
+  "version": "1.0.0",
+  "private": true,
+  "main": "index.ts",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "web": "expo start --web"
+  },
+  "dependencies": {
+    "expo": "^56.0.0",
+    "expo-status-bar": "~3.0.0",
+    "local-network-info": "file:..",
+    "react": "19.2.0",
+    "react-native": "0.85.0"
+  },
+  "devDependencies": {
+    "@types/react": "~19.0.0",
+    "typescript": "^5.9.0"
+  }
+}
