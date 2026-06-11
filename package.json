@@ -1,6 +1,6 @@
 {
   "name": "react-native-local-network-info",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Read a React Native device's own local IPv4 address and whether it is connected to WiFi or acting as a hotspot host, with live network-change events. Built with the Expo Modules API; works in bare React Native and Expo.",
   "main": "build/index.js",
   "types": "build/index.d.ts",
