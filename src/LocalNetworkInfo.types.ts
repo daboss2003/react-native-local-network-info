@@ -13,11 +13,19 @@ export type NetworkRole = 'wifi' | 'hotspot' | 'none';
 /** The platform that produced a given snapshot. */
 export type DevicePlatform = 'ios' | 'android' | 'web';
 
-/** A predicted inclusive range of client IPv4 addresses on the hotspot subnet. */
+/**
+ * The usable host range of the hotspot subnet — i.e. the addresses a client
+ * could be assigned. This is the whole subnet's usable span (network+1 ..
+ * broadcast-1), so the host/gateway itself is one address *within* this range
+ * (it is not a boundary). When scanning for clients, skip your own `ip`.
+ *
+ * Example: host/gateway `10.121.184.216` on a `/24` → range `10.121.184.1` ..
+ * `10.121.184.254` (a client may legitimately be `.215` *or* `.217`).
+ */
 export interface ClientIpRange {
-  /** First usable client IPv4 (the host itself is excluded). */
+  /** First usable client IPv4 in the subnet. */
   first: string;
-  /** Last usable client IPv4. */
+  /** Last usable client IPv4 in the subnet. */
   last: string;
 }
 

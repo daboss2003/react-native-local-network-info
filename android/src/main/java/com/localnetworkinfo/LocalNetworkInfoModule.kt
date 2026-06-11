@@ -9,6 +9,8 @@ import android.net.LinkProperties
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.os.Build
+import android.os.Handler
+import android.os.HandlerThread
 import expo.modules.kotlin.exception.Exceptions
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
@@ -25,6 +27,9 @@ class LocalNetworkInfoModule : Module() {
 
   private var networkCallback: ConnectivityManager.NetworkCallback? = null
   private var apStateReceiver: BroadcastReceiver? = null
+  private var handlerThread: HandlerThread? = null
+  private var handler: Handler? = null
+  private val resampleRunnable = Runnable { doEmit() }
 
   override fun definition() = ModuleDefinition {
     Name("LocalNetworkInfo")
@@ -55,6 +60,12 @@ class LocalNetworkInfoModule : Module() {
   // region Network change monitoring
 
   private fun startMonitoring() {
+    if (handlerThread == null) {
+      val thread = HandlerThread("expo.localnetworkinfo.emit").apply { start() }
+      handler = Handler(thread.looper)
+      handlerThread = thread
+    }
+
     if (networkCallback == null) {
       val callback = object : ConnectivityManager.NetworkCallback() {
         override fun onAvailable(network: Network) = emitChange()
@@ -93,6 +104,11 @@ class LocalNetworkInfoModule : Module() {
   }
 
   private fun stopMonitoring() {
+    handler?.removeCallbacks(resampleRunnable)
+    handlerThread?.quitSafely()
+    handlerThread = null
+    handler = null
+
     networkCallback?.let {
       try {
         connectivityManager.unregisterNetworkCallback(it)
@@ -110,10 +126,25 @@ class LocalNetworkInfoModule : Module() {
     apStateReceiver = null
   }
 
-  private fun emitChange() {
+  private fun doEmit() {
     try {
       sendEvent("onNetworkChange", buildInfo())
     } catch (_: Exception) {
+    }
+  }
+
+  private fun emitChange() {
+    // Emit an immediate snapshot, then re-sample over the next few seconds. On
+    // Android the hotspot/station interface frequently receives its IPv4 a beat
+    // AFTER the change event fires, and no further event follows — so a single
+    // immediate snapshot can report "no connection" until the next manual
+    // refresh. The trailing re-samples catch the late address assignment.
+    doEmit()
+    handler?.let { h ->
+      h.removeCallbacks(resampleRunnable)
+      h.postDelayed(resampleRunnable, 700)
+      h.postDelayed(resampleRunnable, 1800)
+      h.postDelayed(resampleRunnable, 3500)
     }
   }
 
@@ -315,7 +346,11 @@ class LocalNetworkInfoModule : Module() {
     return intToIp(network + 1)
   }
 
-  /** Predict the usable client IPv4 range of a hotspot subnet, excluding the host. */
+  /**
+   * Predict the usable client IPv4 range of a hotspot subnet (network+1 ..
+   * broadcast-1). The host occupies one address within this range unless it is
+   * the first host, in which case the range starts at the next address.
+   */
   private fun predictClientRange(hostIp: String, prefix: Int): Map<String, String>? {
     val ipInt = ipToInt(hostIp) ?: return null
     if (prefix <= 0 || prefix >= 31) return null

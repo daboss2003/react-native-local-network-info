@@ -37,8 +37,7 @@ public class LocalNetworkInfoModule: Module {
     guard monitor == nil else { return }
     let pathMonitor = NWPathMonitor()
     pathMonitor.pathUpdateHandler = { [weak self] _ in
-      guard let self = self else { return }
-      self.sendEvent("onNetworkChange", LocalNetworkInfoModule.buildInfo())
+      self?.emitChange()
     }
     pathMonitor.start(queue: monitorQueue)
     monitor = pathMonitor
@@ -47,6 +46,18 @@ public class LocalNetworkInfoModule: Module {
   private func stopMonitoring() {
     monitor?.cancel()
     monitor = nil
+  }
+
+  /// Emit an immediate snapshot, then re-sample shortly after: the hotspot
+  /// (`bridge100`) interface can receive its address a moment after the path
+  /// change fires, and no follow-up path event is guaranteed.
+  private func emitChange() {
+    sendEvent("onNetworkChange", LocalNetworkInfoModule.buildInfo())
+    for delay in [0.7, 1.8] {
+      monitorQueue.asyncAfter(deadline: .now() + delay) { [weak self] in
+        self?.sendEvent("onNetworkChange", LocalNetworkInfoModule.buildInfo())
+      }
+    }
   }
 
   // MARK: - Interface model
@@ -211,7 +222,9 @@ public class LocalNetworkInfoModule: Module {
     return intToIp(network + 1)
   }
 
-  /// Predict the usable client IPv4 range of a hotspot subnet, excluding the host.
+  /// Predict the usable client IPv4 range of a hotspot subnet (network+1 ..
+  /// broadcast-1). The host occupies one address within this range unless it is
+  /// the first host, in which case the range starts at the next address.
   private static func predictClientRange(hostIp: String, netmask: String) -> [String: String]? {
     guard let ipInt = ipToInt(hostIp), let maskInt = ipToInt(netmask), maskInt != 0 else { return nil }
     let network = ipInt & maskInt
