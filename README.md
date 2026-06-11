@@ -1,4 +1,4 @@
-# local-network-info
+# react-native-local-network-info
 
 Read a React Native device's **own local IPv4 address** and whether it's **connected to WiFi** or **acting as a hotspot host** — with **live network-change events**.
 
@@ -24,7 +24,7 @@ Built with the [Expo Modules API](https://docs.expo.dev/modules/overview/), so i
 ## Installation
 
 ```sh
-npm install local-network-info
+npm install react-native-local-network-info
 ```
 
 > **Bare React Native:** you must also have the `expo` package installed so Expo Modules autolinking works. If you don't yet:
@@ -57,7 +57,7 @@ import {
   getLocalIp,
   addNetworkChangeListener,
   useLocalIp,
-} from 'local-network-info';
+} from 'react-native-local-network-info';
 
 // One-shot read
 const info = await getLocalIp();
@@ -73,7 +73,7 @@ const sub = addNetworkChangeListener((info) => {
 ### React hook
 
 ```tsx
-import { useLocalIp } from 'local-network-info';
+import { useLocalIp } from 'react-native-local-network-info';
 
 function Status() {
   const info = useLocalIp(); // null until first snapshot, then live

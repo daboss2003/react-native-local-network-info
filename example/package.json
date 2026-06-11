@@ -1,5 +1,5 @@
 {
-  "name": "local-network-info-example",
+  "name": "react-native-local-network-info-example",
   "version": "1.0.0",
   "private": true,
   "main": "index.ts",
@@ -12,7 +12,7 @@
   "dependencies": {
     "expo": "^56.0.0",
     "expo-status-bar": "~3.0.0",
-    "local-network-info": "file:..",
+    "react-native-local-network-info": "file:..",
     "react": "19.2.7",
     "react-native": "0.86.0"
   },

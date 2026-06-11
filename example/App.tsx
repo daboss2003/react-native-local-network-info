@@ -10,7 +10,7 @@ import {
   useLocalIp,
   type LocalIpInfo,
   type NetworkInterfaceInfo,
-} from 'local-network-info';
+} from 'react-native-local-network-info';
 import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,

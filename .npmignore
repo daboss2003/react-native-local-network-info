@@ -1,4 +1,4 @@
-# Sources are shipped (src/) but exclude dev-only noise.
+# Dev-only noise (the package.json "files" allowlist is the primary control).
 example/
 node_modules/
 .expo/
@@ -6,4 +6,12 @@ node_modules/
 *.tgz
 .DS_Store
 
-# Keep build/, android/, ios/, src/ and expo-module.config.json (see package.json "files").
+# Generated native build output — must never be published.
+android/build/
+android/.gradle/
+android/.cxx/
+ios/build/
+ios/Pods/
+**/*.xcworkspace
+
+# Keep build/, android/ + ios/ source, src/ and expo-module.config.json.
