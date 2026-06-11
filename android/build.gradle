@@ -4,7 +4,7 @@ plugins {
 }
 
 group = 'com.localnetworkinfo'
-version = '0.1.0'
+version = '1.0.0'
 
 // compileSdk (36), minSdk (24), targetSdk (36), Kotlin (2.0.21) and the
 // JVM toolchain (17) are supplied by the `expo-module-gradle-plugin`.
@@ -12,7 +12,7 @@ android {
   namespace 'com.localnetworkinfo'
   defaultConfig {
     versionCode 1
-    versionName '0.1.0'
+    versionName '1.0.0'
   }
   lintOptions {
     abortOnError false

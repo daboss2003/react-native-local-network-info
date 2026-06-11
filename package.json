@@ -8,7 +8,7 @@
     "build": "tsc",
     "clean": "rm -rf build",
     "prepare": "tsc",
-    "prepublishOnly": "tsc"
+    "prepublishOnly": "npm run clean && tsc"
   },
   "keywords": [
     "react-native",
@@ -29,7 +29,10 @@
   "homepage": "https://github.com/daboss2003/react-native-local-network-info#readme",
   "repository": {
     "type": "git",
-    "url": "https://github.com/daboss2003/react-native-local-network-info"
+    "url": "git+https://github.com/daboss2003/react-native-local-network-info.git"
+  },
+  "bugs": {
+    "url": "https://github.com/daboss2003/react-native-local-network-info/issues"
   },
   "files": [
     "build",
@@ -48,6 +51,7 @@
   ],
   "peerDependencies": {
     "expo": "*",
+    "expo-modules-core": "*",
     "react": "*",
     "react-native": "*"
   },

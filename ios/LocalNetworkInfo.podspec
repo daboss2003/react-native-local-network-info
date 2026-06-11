@@ -5,7 +5,7 @@ package = JSON.parse(File.read(File.join(__dir__, '..', 'package.json')))
 Pod::Spec.new do |s|
   s.name           = 'LocalNetworkInfo'
   s.version        = package['version']
-  s.summary        = package['description']
+  s.summary        = 'Local IPv4 + WiFi/hotspot detection for React Native.'
   s.description    = package['description']
   s.license        = package['license']
   s.author         = package['author']
