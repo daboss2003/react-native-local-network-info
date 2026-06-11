@@ -126,8 +126,8 @@ interface LocalIpInfo {
 | | iOS | Android |
 | --- | --- | --- |
 | Enumeration | `getifaddrs(3)` | `java.net.NetworkInterface` |
-| WiFi station | `en0` | `wlan0` |
-| Hotspot host | `bridge*` @ `172.20.10.1/28` | `ap0` / `wlan1` / `swlan0` / `softap0` / `ap_br_*` (reads live IP) |
+| WiFi station | `en0` | the interface `ConnectivityManager` reports for the `TRANSPORT_WIFI` network (usually `wlan0`) |
+| Hotspot host | `bridge*` @ `172.20.10.1/28` | any WiFi-family interface (`wlan*`/`ap*`/`swlan*`/`softap*`) that is **not** the confirmed station — reads its live IP |
 | Cellular (ignored for LAN IP) | `pdp_ip0` | `rmnet*` / `ccmni*` |
 | Change events | `NWPathMonitor` | `registerDefaultNetworkCallback` + `WIFI_AP_STATE_CHANGED` |
 | Station gateway | derived from subnet (heuristic) | `LinkProperties` default route (real) |
@@ -138,9 +138,9 @@ interface LocalIpInfo {
 
 - **iOS station gateway is a heuristic** (first host of the subnet). Apple exposes no public default-gateway API; the WiFi IP, netmask, and role are accurate.
 - **iOS hotspot change events:** `NWPathMonitor` reliably reports WiFi/cellular changes, but toggling Personal Hotspot while the default path is unchanged may not fire an event. Call `getLocalIp()` to force a fresh read when you need certainty.
-- **Android hotspot interface names vary by vendor.** The common names are covered; use `getAllInterfaces()` to inspect an unusual device, and open an issue with the interface name.
+- **Android hotspot vs. station** is resolved by asking `ConnectivityManager` which interface carries the real `TRANSPORT_WIFI` (station) network, then treating any *other* WiFi-family interface with an IP as the hotspot. This correctly handles phones that host the SoftAP on `wlan0` itself (not just `ap0`/`swlan0`), and devices running WiFi + hotspot concurrently. Use `getAllInterfaces()` to inspect an unusual device.
 - **Web** returns `role: 'none'` / `ip: null` — browsers don't expose the LAN IP.
-- Interface-name → role mapping is a documented **heuristic** (Apple/Google expose no public role API); the hotspot-host IP/mask fingerprint and `NetworkInterface` reads are the reliable signals.
+- iOS interface-name → role mapping is a documented **heuristic** (Apple exposes no public role API); the hotspot-host `172.20.10.1`/`255.255.255.240` fingerprint and `NetworkInterface` reads are the reliable signals.
 
 ## Example app
 

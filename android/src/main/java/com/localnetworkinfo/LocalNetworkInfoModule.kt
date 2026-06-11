@@ -144,15 +144,40 @@ class LocalNetworkInfoModule : Module() {
     )
   }
 
-  // SoftAP / hotspot host interfaces vary by vendor/chipset.
-  private val apNameRegex = Regex("^(ap0|wlan1|swlan|softap|ap_br_).*")
-
-  private fun classify(name: String): Role = when {
-    name == "wlan0" -> Role.WIFI
-    apNameRegex.matches(name) -> Role.HOTSPOT
+  /**
+   * Classify an interface, using ConnectivityManager to confirm which interface
+   * actually carries a WiFi *station* network. This is what lets us tell a
+   * hotspot apart from a station even when the device hosts its SoftAP on
+   * `wlan0` itself (common on single-radio phones) instead of a separate
+   * `ap0` / `wlan1` / `swlan0` / `softap0` interface.
+   */
+  private fun classify(name: String, stationInterfaces: Set<String>): Role = when {
+    // Confirmed by the system to be a real WiFi station (client) connection.
+    name in stationInterfaces -> Role.WIFI
     name.startsWith("rmnet") || name.startsWith("ccmni") -> Role.CELLULAR
     name.startsWith("eth") -> Role.ETHERNET
+    // Any WiFi-family interface that is NOT a confirmed station is the hotspot/SoftAP.
+    name.startsWith("wlan") ||
+      name.startsWith("ap") ||
+      name.startsWith("swlan") ||
+      name.startsWith("softap") -> Role.HOTSPOT
     else -> Role.OTHER
+  }
+
+  /** Interface names ConnectivityManager reports as carrying a WiFi station network. */
+  private fun wifiStationInterfaceNames(): Set<String> {
+    val names = mutableSetOf<String>()
+    try {
+      @Suppress("DEPRECATION")
+      val networks = connectivityManager.allNetworks
+      for (network in networks) {
+        val capabilities = connectivityManager.getNetworkCapabilities(network) ?: continue
+        if (!capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) continue
+        connectivityManager.getLinkProperties(network)?.interfaceName?.let { names.add(it) }
+      }
+    } catch (_: Exception) {
+    }
+    return names
   }
 
   // endregion
@@ -161,6 +186,7 @@ class LocalNetworkInfoModule : Module() {
 
   private fun enumerateInterfaces(): List<Iface> {
     val result = mutableListOf<Iface>()
+    val stationInterfaces = wifiStationInterfaceNames()
 
     val interfaces = try {
       NetworkInterface.getNetworkInterfaces() ?: return result
@@ -183,7 +209,7 @@ class LocalNetworkInfoModule : Module() {
 
         val ip = address.hostAddress ?: continue
         val prefix = interfaceAddress.networkPrefixLength.toInt()
-        result.add(Iface(nif.name, ip, prefixToNetmask(prefix), prefix, classify(nif.name)))
+        result.add(Iface(nif.name, ip, prefixToNetmask(prefix), prefix, classify(nif.name, stationInterfaces)))
       }
     }
 
@@ -241,12 +267,15 @@ class LocalNetworkInfoModule : Module() {
     return try {
       val network = connectivityManager.activeNetwork ?: return null
       val linkProperties = connectivityManager.getLinkProperties(network) ?: return null
+      // Ignore the 0.0.0.0 wildcard (appears as the "gateway" of a directly-connected
+      // default route, e.g. when the device is tethering rather than a real station).
       val routeGateway = linkProperties.routes
-        .firstOrNull { it.isDefaultRoute && it.gateway != null }
+        .firstOrNull { it.isDefaultRoute && it.gateway?.isAnyLocalAddress == false }
         ?.gateway
         ?.hostAddress
       if (routeGateway != null) return routeGateway
-      if (Build.VERSION.SDK_INT >= 30) linkProperties.dhcpServerAddress?.hostAddress else null
+      val dhcpServer = if (Build.VERSION.SDK_INT >= 30) linkProperties.dhcpServerAddress else null
+      if (dhcpServer != null && !dhcpServer.isAnyLocalAddress) dhcpServer.hostAddress else null
     } catch (_: Exception) {
       null
     }
